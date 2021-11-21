@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option go_package = "./service";
+
+// Install libraries
+// go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+// go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+// import
+// go get google.golang.org/grpc
+
+// Compile protofile with:
+// protoc -I="." --go_out="." service/service.proto
+// protoc --go-grpc_out="." service/service.proto
+
+// go mod init packageName
+// go mod tidy
+
+package service;
+
+
+message RequestConnection {
+    string name = 1;
+    string port = 2;
+}
+
+message JoinResponse {
+    string joinStatus = 1;
+}
+
+message RequestBid {
+    int32 price = 1; 
+}
+
+message Ack {
+    enum Status {
+        FAIL = 0;
+        SUCCESS = 1;
+    }
+    Status status = 1;
+}
+
+service Service {
+    rpc JoinClientToServer (RequestConnection) returns (JoinResponse);
+    rpc Bid (RequestBid) returns (Ack);
+    rpc Broadcast (RequestBid) returns (Ack);
+}
