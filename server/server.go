@@ -5,7 +5,6 @@ import (
 	"net"
 
 	service "miniproject03/service"
-	//client "miniproject03/client"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -13,12 +12,12 @@ import (
 
 type BidingServer struct {
 	service.UnimplementedServiceServer
-	clients []string
+	clients []Client
 }
 
 type Client struct {
-	connectingPort 	string
-	name 			string
+	ConnectingPort string
+	Name           string
 }
 
 func main() {
@@ -29,7 +28,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	s := BidingServer{}
+	s := BidingServer{clients: make([]Client, 0)}
 	service.RegisterServiceServer(grpcServer, &s)
 
 	if err := grpcServer.Serve(lis); err != nil {
@@ -39,14 +38,14 @@ func main() {
 }
 
 func (s *BidingServer) Bid(ctx context.Context, bid *service.RequestBid) (*service.Ack, error) {
-	return service.Ack{state: service.Ack_FAIL}, nil
+	return &service.Ack{Status: service.Ack_SUCCESS}, nil
 }
 
 func (s *BidingServer) Broadcast(ctx context.Context, bid *service.RequestBid) (*service.Ack, error) {
-	return service.Ack{state: service.Ack_FAIL}, nil
+	return &service.Ack{Status: service.Ack_SUCCESS}, nil
 }
 
 func (s *BidingServer) JoinClientToServer(ctx context.Context, requestConn *service.RequestConnection) (*service.JoinResponse, error) {
-	s.clients = append(s.clients, requestConn.Name)
-	return service.JoinResponse{response: "Joinned to Server"}, nil
+	s.clients = append(s.clients, Client{ConnectingPort: requestConn.Port, Name: requestConn.Name})
+	return &service.JoinResponse{JoinStatus: "Joinned to Server"}, nil
 }

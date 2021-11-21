@@ -1,4 +1,4 @@
-package client
+package main
 
 import (
 	"context"
@@ -10,14 +10,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Client struct {
-	connectingPort 	string
-	name 			string
-}
-
 func main() {
 	var conn *grpc.ClientConn
-	conn, err := grpc.Dial("9000", grpc.WithInsecure())
+	conn, err := grpc.Dial("localhost:9000", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Could not connect: %s", err)
 	}
@@ -31,19 +26,19 @@ func main() {
 	ReadPort := UserInput[0]
 	ReadName := UserInput[1]
 
-	client := Client{connectingPort: ReadPort, name: ReadName}
-
-	connect(&client, c)
-
-
+	connect(ReadName, ReadPort, c)
 
 }
 
-func connect(client *Client, serviceClient service.serviceClient){
-	response, _:= serviceClient.JoinClientToServer(context.Background(), service.RequestConnection{name: client.name, port: client.connectingPort})
-	fmt.Printf("Join Response, %s", response)
+func connect(name string, port string, serviceClient service.ServiceClient) {
+	response, err := serviceClient.JoinClientToServer(context.Background(), &service.RequestConnection{Name: name, Port: port})
+	if err != nil {
+		fmt.Printf("Error:%v", err)
+	}
+	fmt.Printf("Join Response, %v", response.JoinStatus)
 }
 
+/*
 func Bid (){
 	log.Println("Give a bid: $")
 	var bidInput int32
@@ -55,5 +50,6 @@ func Bid (){
 		log.Fatalf("Error when calling Bid: %s", err)
 	}
 	log.Printf("Response from Server: %s", response.state)
-	
+
 }
+*/
