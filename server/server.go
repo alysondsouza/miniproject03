@@ -4,7 +4,7 @@ import (
 	"log"
 	"net"
 
-	service "miniproject03/service"
+	"service"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
