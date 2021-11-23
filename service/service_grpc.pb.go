@@ -14,7 +14,7 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ServiceClient is the client API for Service service.
+// ServiceClient is the client API for service service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServiceClient interface {
@@ -33,7 +33,7 @@ func NewServiceClient(cc grpc.ClientConnInterface) ServiceClient {
 
 func (c *serviceClient) JoinClientToServer(ctx context.Context, in *RequestConnection, opts ...grpc.CallOption) (*JoinResponse, error) {
 	out := new(JoinResponse)
-	err := c.cc.Invoke(ctx, "/service.Service/JoinClientToServer", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.service/JoinClientToServer", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *serviceClient) JoinClientToServer(ctx context.Context, in *RequestConne
 
 func (c *serviceClient) Bid(ctx context.Context, in *RequestBid, opts ...grpc.CallOption) (*Ack, error) {
 	out := new(Ack)
-	err := c.cc.Invoke(ctx, "/service.Service/Bid", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.service/Bid", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +51,14 @@ func (c *serviceClient) Bid(ctx context.Context, in *RequestBid, opts ...grpc.Ca
 
 func (c *serviceClient) Broadcast(ctx context.Context, in *RequestBid, opts ...grpc.CallOption) (*Ack, error) {
 	out := new(Ack)
-	err := c.cc.Invoke(ctx, "/service.Service/Broadcast", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/service.service/Broadcast", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ServiceServer is the server API for Service service.
+// ServiceServer is the server API for service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility
 type ServiceServer interface {
@@ -104,7 +104,7 @@ func _Service_JoinClientToServer_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Service/JoinClientToServer",
+		FullMethod: "/service.service/JoinClientToServer",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).JoinClientToServer(ctx, req.(*RequestConnection))
@@ -122,7 +122,7 @@ func _Service_Bid_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Service/Bid",
+		FullMethod: "/service.service/Bid",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).Bid(ctx, req.(*RequestBid))
@@ -140,7 +140,7 @@ func _Service_Broadcast_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/service.Service/Broadcast",
+		FullMethod: "/service.service/Broadcast",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).Broadcast(ctx, req.(*RequestBid))
@@ -148,11 +148,11 @@ func _Service_Broadcast_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-// Service_ServiceDesc is the grpc.ServiceDesc for Service service.
+// Service_ServiceDesc is the grpc.ServiceDesc for service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Service_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "service.Service",
+	ServiceName: "service.service",
 	HandlerType: (*ServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

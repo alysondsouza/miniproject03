@@ -333,12 +333,12 @@ var file_service_service_proto_goTypes = []interface{}{
 }
 var file_service_service_proto_depIdxs = []int32{
 	0, // 0: service.Ack.status:type_name -> service.Ack.Status
-	1, // 1: service.Service.JoinClientToServer:input_type -> service.RequestConnection
-	3, // 2: service.Service.Bid:input_type -> service.RequestBid
-	3, // 3: service.Service.Broadcast:input_type -> service.RequestBid
-	2, // 4: service.Service.JoinClientToServer:output_type -> service.JoinResponse
-	4, // 5: service.Service.Bid:output_type -> service.Ack
-	4, // 6: service.Service.Broadcast:output_type -> service.Ack
+	1, // 1: service.service.JoinClientToServer:input_type -> service.RequestConnection
+	3, // 2: service.service.Bid:input_type -> service.RequestBid
+	3, // 3: service.service.Broadcast:input_type -> service.RequestBid
+	2, // 4: service.service.JoinClientToServer:output_type -> service.JoinResponse
+	4, // 5: service.service.Bid:output_type -> service.Ack
+	4, // 6: service.service.Broadcast:output_type -> service.Ack
 	4, // [4:7] is the sub-list for method output_type
 	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

@@ -4,14 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
-	service "miniproject03/service"
 	"os"
+	"service"
 
 	"google.golang.org/grpc"
 )
 
+var doneCha = make(chan bool)
 func main() {
-	var conn *grpc.ClientConn
+	//how to read input from console //flags
+	UserInput := os.Args[1:]
+	ReadPort := UserInput[0]
+	ReadName := UserInput[1]
+
 	conn, err := grpc.Dial("localhost:9000", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Could not connect: %s", err)
@@ -20,14 +25,8 @@ func main() {
 
 	//client connection
 	c := service.NewServiceClient(conn)
-
-	//how to read input from console //flags
-	UserInput := os.Args[1:]
-	ReadPort := UserInput[0]
-	ReadName := UserInput[1]
-
 	connect(ReadName, ReadPort, c)
-
+	<-doneCha
 }
 
 func connect(name string, port string, serviceClient service.ServiceClient) {
