@@ -2,13 +2,6 @@ syntax = "proto3";
 
 option go_package = "./service";
 
-// Install libraries
-// go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-// go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
-// import
-// go get google.golang.org/grpc
-
 // Compile protofile with:
 // protoc -I="." --go_out="." service/service.proto
 // protoc --go-grpc_out="." service/service.proto
@@ -19,13 +12,13 @@ option go_package = "./service";
 package service;
 
 
-message RequestConnection {
+message RequestPort {
     string name = 1;
     string port = 2;
 }
 
-message JoinResponse {
-    string joinStatus = 1;
+message ReturnPort {
+    string address = 1;
 }
 
 message RequestBid {
@@ -40,8 +33,22 @@ message Ack {
     Status status = 1;
 }
 
+message InfoRequest {
+    string requestName = 1;
+}
+
+message InfoResponse {
+    string responseName = 1;
+}
+
+message ReplicateClientAddress {
+    repeated string addresses = 1;
+}
+
 service Service {
-    rpc JoinClientToServer (RequestConnection) returns (JoinResponse);
+    rpc RegisterClientPortOnPrimaryServer (RequestPort) returns (ReturnPort);
     rpc Bid (RequestBid) returns (Ack);
+    rpc PublishClientAddress (ReplicateClientAddress) returns (Ack);
     rpc Broadcast (RequestBid) returns (Ack);
+    rpc GetName (InfoRequest) returns (InfoResponse);
 }

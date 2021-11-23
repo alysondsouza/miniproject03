@@ -1,51 +1,26 @@
-package main
+package server
 
 import (
-	"log"
 	"net"
+	"utils"
 
 	"service"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-type AuctionServer struct {
-	service.UnimplementedServiceServer
-	clients []Client
-}
+func InitServer(ipAddress *net.TCPAddr, s service.ServiceServer, logger *utils.Logger) {
+	go func() {
+		lis, err := net.Listen("tcp", ipAddress.String())
+		if err != nil {
+			logger.ErrorFatalf("Failed to listen on port %v. :: %v", ipAddress.Port, err)
+		}
 
-type Client struct {
-	ConnectingPort string
-	Name           string
-}
+		grpcServer := grpc.NewServer()
+		service.RegisterServiceServer(grpcServer, s)
 
-func main() {
-
-	lis, err := net.Listen("tcp", ":9000")
-	if err != nil {
-		log.Fatalf("Failed to listen on port 9000: %v", err)
-	}
-
-	grpcServer := grpc.NewServer()
-	s := &AuctionServer{clients: make([]Client, 0)}
-	service.RegisterServiceServer(grpcServer, s)
-
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Failed to serve gRPC server over port 9000: %v", err)
-	}
-
-}
-
-func (s *AuctionServer) Bid(ctx context.Context, bid *service.RequestBid) (*service.Ack, error) {
-	return &service.Ack{Status: service.Ack_SUCCESS}, nil
-}
-
-func (s *AuctionServer) Broadcast(ctx context.Context, bid *service.RequestBid) (*service.Ack, error) {
-	return &service.Ack{Status: service.Ack_SUCCESS}, nil
-}
-
-func (s *AuctionServer) JoinClientToServer(ctx context.Context, requestConn *service.RequestConnection) (*service.JoinResponse, error) {
-	s.clients = append(s.clients, Client{ConnectingPort: requestConn.Port, Name: requestConn.Name})
-	return &service.JoinResponse{JoinStatus: "Joinned to Server"}, nil
+		if err := grpcServer.Serve(lis); err != nil {
+			logger.ErrorFatalf("Failed to serve gRPC server over port 9000: %v", err)
+		}
+	}()
 }
