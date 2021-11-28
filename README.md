@@ -1,4 +1,4 @@
-#  Distributed Systems 2021 &mdash; Miniproject 3
+#  Distributed Systems 2021&mdash;Miniproject 3
 
 <pre>
 <b>💡 Hand-in Date: 1 December 2021 (at 23:59)</b>
@@ -21,26 +21,23 @@ You must implement a **distributed auction system** using replication: a distrib
 
 Your system must be implemented as some number of nodes, possibly running on distinct hosts. Clients direct API requests to any node they happen to know (it is up to you to decide how many nodes can be known). Nodes must respond to the following API:
 
----
-#### Method: `bid()`
+<pre>
+  <br>    <b>Method:</b> bit()
+  
+      <b>Inputs:</b>  amount (an int)
+      <b>Outputs:</b> ack
+      <b>Comment:</b> given a bid, returns an outcome among {fail, success or exception}
+    
+</pre>
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Inputs:** `amount` (an int)
+<pre>
+  <br>    <b>Method:</b> result()
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Outputs:** `ack`
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Comment:** given a `bid`, returns an outcome `among` {`fail`, `success` or `exception`}
-
----
-
-#### Method: `result()`
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Inputs:** void `amount` (an int)
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Ouputs:** `outcome`
-
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **Comment:** if over, it returns the `result`, else highest `bid`. 
-
----
+      <b>Inputs:</b>  void amount (an int)
+      <b>Outputs:</b> outcome
+      <b>Comment:</b> if over, it returns the result, else highest bid
+    
+</pre>
 
 ### Semantics
 
