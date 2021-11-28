@@ -21,18 +21,6 @@ message ReturnPort {
     string address = 1;
 }
 
-message RequestBid {
-    int32 price = 1; 
-}
-
-message Ack {
-    enum Status {
-        FAIL = 0;
-        SUCCESS = 1;
-    }
-    Status status = 1;
-}
-
 message InfoRequest {
     string requestName = 1;
 }
@@ -45,10 +33,54 @@ message ReplicateClientAddress {
     repeated string addresses = 1;
 }
 
+message RequestStatus {
+    string resultComando = 1;
+}
+
+message AuctionResults {
+    bool ongoing = 1;
+    string nodeId = 2;
+    int32 price = 3;
+}
+
+message RequestBid {
+    string nodeId = 1;
+    int32 myBid = 2;
+    int32 lamport = 3;
+}
+
+message HighestBidInfo {
+    string nodeId = 1;
+    int32 highestBid = 2;
+    int32 lamport = 3;
+}
+
+message Ack {
+    enum Status {
+        FAIL = 0;
+        SUCCESS = 1;
+    }
+    Status status = 1;
+}
+
+message Replica {
+    AuctionReplica auctionReplica = 1;
+    repeated string addresses = 2;
+}
+
+message AuctionReplica {
+    string highestBidderId = 1;
+    int32 highestBid = 2;
+    bool onGoing = 3;
+    int32 timeRemaining = 4;
+}
+
 service Service {
     rpc RegisterClientPortOnPrimaryServer (RequestPort) returns (ReturnPort);
     rpc Bid (RequestBid) returns (Ack);
-    rpc PublishClientAddress (ReplicateClientAddress) returns (Ack);
+    rpc Result (RequestStatus) returns (AuctionResults);
+    rpc PublishReplicate (Replica) returns (Ack);
+    rpc ReplicateHighestBid (HighestBidInfo) returns (Ack);
     rpc Broadcast (RequestBid) returns (Ack);
     rpc GetName (InfoRequest) returns (InfoResponse);
 }

@@ -14,3 +14,4 @@ func CreateClient(ipAddress string, logger *utils.Logger) service.ServiceClient 
 
 	return service.NewServiceClient(conn)
 }
+

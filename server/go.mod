@@ -7,7 +7,6 @@ replace service => ../service
 replace utils => ../utils
 
 require (
-	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4
 	google.golang.org/grpc v1.42.0
 	service v0.0.0-00010101000000-000000000000
 	utils v0.0.0-00010101000000-000000000000
