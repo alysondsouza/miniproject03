@@ -1,5 +1,56 @@
 #  Distributed Systems 2021&mdash;Miniproject 3
 
+## Guide on how to run
+
+Depending on how many _Front Ends_ (_FE_) (which includes the clients) and how many servers that is wished for, the following commands will depend upon. The general example that is showcased below includes two _FE_ and three servers. 
+
+### Setting up nodes
+
+In seperate terminal windows insert from within the folder `../replicaNode` to run the primary and backup servers:
+
+```pwsh
+go run . -name s1 -port 9000 -ips 9001:9002
+```
+
+```pwsh
+go run . -name s2 -port 9001 -ips 9000:9002
+```
+
+```pwsh
+go run . -name s3 -port 9002 -ips 9000:9001
+```
+
+The FE (and client) is inserted in the folder `../frontEndNode` and run via the following commands: 
+
+```pwsh
+go run . -name node1 -address localhost -port 5000
+```
+
+```pwsh
+go run . -name node2 -address localhost -port 5001
+```
+
+### Crashing a node 
+
+<pre>
+<b>💡 The premise is that any server node may crash ― however, this happens only once.</b>
+</pre>
+
+The auction time is set to one minute, and within this one minute one of two events can occur:
+
+1. A backup server replica crashes.
+2. The primary server crashes.
+
+To initiate any of these two events, press `ctrl+c` in the respective wanted server that should crash.
+
+<br>
+
+---
+
+<br>
+
+## Project description
+
 <pre>
 <b>💡 Hand-in Date: 1 December 2021 (at 23:59)</b>
 </pre>
