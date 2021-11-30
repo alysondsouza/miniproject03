@@ -56,6 +56,7 @@ func main() {
 	<-done
 }
 
+// commandShell starts the command interface used to query on the auction hosted by a ReplicaNode.
 func (f *FrontEndNode) commandShell() {
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -84,6 +85,7 @@ func (f *FrontEndNode) commandShell() {
 	}
 }
 
+// bid on the ReplicaNode hosting the auction.
 func (f *FrontEndNode) bid(bid int) {
 	f.lamport.Increment()
 
@@ -94,15 +96,19 @@ func (f *FrontEndNode) bid(bid int) {
 
 	if ack.GetStatus() == service.Ack_SUCCESS {
 		f.logger.InfoPrintf("Bid status: %v", ack.GetStatus())
+		f.result()
 	} else if ack.GetStatus() == service.Ack_FAIL {
 		f.logger.InfoPrintf("Bid status: %v", ack.GetStatus())
-		f.logger.WarningPrintln("The bid was too low. Write 'result' to see the highest bid.")
+		f.logger.WarningPrintln("The bid was too low")
+		f.result()
 	} else if ack.GetStatus() == service.Ack_EXCEPTION {
 		f.logger.WarningPrintf("Bid status: %v", ack.GetStatus())
 		f.logger.WarningPrintln("The auction has ended.")
+		f.result()
 	}
 }
 
+// result queries the ReplicaNode hosting the auction.
 func (f *FrontEndNode) result() {
 	auctionResult, err := primClient.Result(context.Background(), &service.RequestStatus{})
 
@@ -110,18 +116,19 @@ func (f *FrontEndNode) result() {
 		f.logger.ErrorPrintf("Connection was lost. :: ", err)
 	}
 
-	fmt.Println("---------")
+	fmt.Println("---------------------")
 	fmt.Printf("Auction still going: %v\n", auctionResult.Ongoing)
 	fmt.Printf("Highest bidder: %v\n", auctionResult.NodeId)
 	fmt.Printf("Highest bid: %v\n", auctionResult.Price)
-	fmt.Println("---------")
+	fmt.Println("---------------------")
 }
 
 // Redial dials up a new connection to the new primary ReplicaNode.
-func (f *FrontEndNode) Redial(_ context.Context, rp *service.RequestPort) (*service.ReturnPort, error)  {
+func (f *FrontEndNode) Redial(_ context.Context, rp *service.RequestPort) (*service.ReturnPort, error) {
+	f.logger.InfoPrintln("Connecting to auction...")
 	f.primaryServer = rp.Port
 	primClient = client.CreateClient(rp.Port, f.logger, grpc.WithInsecure())
-
+	f.logger.InfoPrintln("Connection established.")
 	return &service.ReturnPort{Address: f.ipAddress.String()}, nil
 }
 

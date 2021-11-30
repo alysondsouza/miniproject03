@@ -41,7 +41,7 @@ func (a *Auction) CheckBid(bidderId string, bid int) (bool, error) {
 func (a *Auction) Start() {
 	a.onGoing = true
 	go func() {
-		t := 1
+		t := 5
 		time.Sleep(time.Duration(t) * time.Minute)
 		a.onGoing = false
 	}()

@@ -82,17 +82,17 @@ func (n *ReplicaNode) connectToReplicas(ips string) {
 	}
 }
 
-// GetId replies the ReplicaNode with the id of this node.
-func (n *ReplicaNode) GetId(_ context.Context, reqName *service.InfoRequest) (*service.InfoResponse, error) {
-	n.logger.InfoPrintf("%v is requesting the id of %v.", reqName.RequestName, n.id)
-	return &service.InfoResponse{ResponseName: n.id}, nil
-}
-
 // RegisterClientPortOnPrimaryServer registers a FrontEndNode's ip address on this ReplicaNode (which must be the primary server).
 func (n *ReplicaNode) RegisterClientPortOnPrimaryServer(_ context.Context, rc *service.RequestPort) (*service.ReturnPort, error) {
 	n.frontEndClients = append(n.frontEndClients, rc.Port)
 	n.broadcast()
 	return &service.ReturnPort{Address: fmt.Sprintf("%v registered with port %v in primary server", rc.Name, rc.Port)}, nil
+}
+
+// GetId replies the ReplicaNode with the id of this node.
+func (n *ReplicaNode) GetId(_ context.Context, reqName *service.InfoRequest) (*service.InfoResponse, error) {
+	n.logger.InfoPrintf("%v is requesting the id of %v.", reqName.RequestName, n.id)
+	return &service.InfoResponse{ResponseName: n.id}, nil
 }
 
 // Bid receives a bid from a FrontEndNode and returns a service.Ack acknowledgement back to the client.
@@ -117,7 +117,7 @@ func (n *ReplicaNode) Bid(_ context.Context, rb *service.RequestBid) (*service.A
 }
 
 // Result returns the current status of this ReplicaNode's auction
-func (n *ReplicaNode) Result(_ context.Context, _ *service.RequestStatus) (*service.AuctionResults, error) {
+func (n *ReplicaNode) Result(context.Context, *service.RequestStatus) (*service.AuctionResults, error) {
 	return &service.AuctionResults{
 		Ongoing: n.auction.IsOnGoing(),
 		NodeId:  n.auction.GetHighestBidderId(),
@@ -216,6 +216,7 @@ func (n *ReplicaNode) Coordinator(_ context.Context, cr *service.CoordinatorRequ
 // broadCastElection broadcasts election messages to all processes with a higher id than this ReplicaNode.
 func (n *ReplicaNode) broadcastElection() int {
 	n.logger.InfoPrintf("%v is broadcasting Election messages to all other replica nodes...", n.id)
+
 	doneBroadcasting := make(chan int)
 	wait := sync.WaitGroup{}
 
@@ -313,12 +314,14 @@ func (n *ReplicaNode) startElection() {
 	if highest {
 		n.logger.InfoPrintf("%v is the highest process.", n.id)
 		n.broadcastVictory()
+		n.primaryReplica = client.CreateClient(n.ipAddress.String(), n.logger, grpc.WithInsecure())
 	} else {
 		n.logger.InfoPrintf("%v is NOT the highest process.", n.id)
 		answers := n.broadcastElection()
 		if answers == 0 {
 			n.logger.InfoPrintf("%v received no answers. Declaring itself winner.", n.id)
 			n.broadcastVictory()
+			n.primaryReplica = client.CreateClient(n.ipAddress.String(), n.logger, grpc.WithInsecure())
 		}
 	}
 }
