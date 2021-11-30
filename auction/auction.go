@@ -17,11 +17,17 @@ type Auction struct {
 }
 
 // CheckBid checks if a bid is valid or not. Valid = TRUE Invalid = FALSE
-func (a *Auction) CheckBid(bidderId string, bid int) bool {
+func (a *Auction) CheckBid(bidderId string, bid int) (bool, error) {
 	fmt.Printf("Checking bid %v against highest bid %v\n", bid, a.highestBid)
+	if !a.onGoing {
+		fmt.Println("The auction has ended. Bid rejected.")
+		fmt.Printf("The winner was %v with highest bid %v\n", a.highestBidderId, a.highestBid)
+		return false, fmt.Errorf("the auction is done")
+	}
+
 	if bid <= a.highestBid {
 		fmt.Printf("The bid %v, is less than highest bid %v\n", bid, a.highestBid)
-		return false
+		return false, nil
 	}
 
 	defer a.mu.Unlock()
@@ -29,7 +35,7 @@ func (a *Auction) CheckBid(bidderId string, bid int) bool {
 	a.mu.Lock()
 	a.highestBidderId = bidderId
 	a.highestBid = bid
-	return true
+	return true, nil
 }
 
 func (a *Auction) Start() {
@@ -65,11 +71,11 @@ func (a *Auction) SetHighestBid(amount int) {
 	a.highestBid = amount
 }
 
-func (a *Auction) SetRemainingTime(timeLeft int)  {
+func (a *Auction) SetRemainingTime(timeLeft int) {
 	a.timeRemaining = timeLeft
 }
 
-func (a *Auction) SetIsOnGoing(onGoing bool)  {
+func (a *Auction) SetIsOnGoing(onGoing bool) {
 	a.onGoing = onGoing
 }
 

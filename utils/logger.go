@@ -27,7 +27,7 @@ func (l *Logger) InfoPrintln(v ...interface{}) {
 
 func (l *Logger) InfoPrintf(format string, v ...interface{}) {
 	l.InfoLogger.Printf(format, v...)
-	log.Printf(format, v...)
+	log.Printf(format + "\n", v...)
 }
 
 func (l *Logger) WarningPrintln(v ...interface{}) {
@@ -37,12 +37,12 @@ func (l *Logger) WarningPrintln(v ...interface{}) {
 
 func (l *Logger) WarningPrintf(format string, v ...interface{}) {
 	l.WarningLogger.Printf(format, v...)
-	log.Printf(format, v...)
+	log.Printf(format + "\n", v...)
 }
 
 func (l *Logger) ErrorPrintf(format string, v ...interface{}) {
 	l.ErrorLogger.Printf(format, v...)
-	log.Printf(format, v...)
+	log.Printf(format + "\n", v...)
 }
 
 func (l *Logger) ErrorFatalf(format string, v ...interface{}) {

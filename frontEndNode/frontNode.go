@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
+	"client"
 	"context"
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 	"os"
 	"server"
@@ -17,8 +17,8 @@ import (
 )
 
 var primClient service.ServiceClient
-var done = make(chan bool)
 const PrimaryServer = "localhost:9000"
+var done = make(chan bool)
 
 type FrontEndNode struct {
 	primaryServer string
@@ -30,28 +30,26 @@ type FrontEndNode struct {
 }
 
 func main() {
-	// Flags: -name nodeX - address localhost -port 9000
+	// Flags: -name nodeX -port 9000
 	var name = flag.String("name", "nodeX", "The name of the replicaNode.")
 	var address = flag.String("address", "localhost", "The address of the replicaNode.")
 	var port = flag.String("port", "5000", "The number of the port.")
 	flag.Parse()
 
 	node := NewFrontEndNode(*name, *address, *port)
+
+	// Host front end node on server
 	server.InitServer(node.ipAddress, node, node.logger)
 
-	conn, err := grpc.Dial(node.primaryServer, grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("Could not connect: %s", err)
-	}
-	defer conn.Close()
-
 	//client connection to primary server
-	primClient = service.NewServiceClient(conn)
-	_, err = primClient.RegisterClientPortOnPrimaryServer(context.Background(), &service.RequestPort{Name: node.id, Port: node.ipAddress.String()})
+	primClient = client.CreateClient(node.primaryServer, node.logger, grpc.WithInsecure())
+
+	_, err := primClient.RegisterClientPortOnPrimaryServer(context.Background(), &service.RequestPort{Name: node.id, Port: node.ipAddress.String()})
 	if err != nil {
 		node.logger.ErrorFatalf("Error registering on primary server. :: %v", err)
 	}
-	fmt.Printf("%v, %v Logged in on Port %v\n", node.id, node.ipAddress, node.primaryServer)
+
+	node.logger.InfoPrintf("%v registered itself on the primary server %v", node.id, node.primaryServer)
 
 	go node.commandShell()
 
@@ -72,11 +70,11 @@ func (f *FrontEndNode) commandShell() {
 			if err != nil {
 				f.logger.WarningPrintf("%v is not a valid bid (must be an integer)\n", myBid)
 			} else {
-				f.bidCase(myBid)
+				f.bid(myBid)
 			}
 
 		case "result":
-			f.resultCase()
+			f.result()
 
 		default:
 			fmt.Println("Use one of the two commandos: 'bid' or 'request': \n" +
@@ -86,40 +84,48 @@ func (f *FrontEndNode) commandShell() {
 	}
 }
 
-func (f *FrontEndNode) bidCase(bid int) {
+func (f *FrontEndNode) bid(bid int) {
 	f.lamport.Increment()
 
-	request := &service.RequestBid{
-		NodeId:  f.id,
-		MyBid:   int32(bid),
-		Lamport: f.lamport.Value(),
-	}
-
-	ack, err := primClient.Bid(context.Background(), request)
+	ack, err := primClient.Bid(context.Background(), &service.RequestBid{NodeId: f.id, MyBid: int32(bid), Lamport: f.lamport.Value()})
 	if err != nil {
 		f.logger.WarningPrintf("Connection was lost. :: %v", err)
 	}
 
 	if ack.GetStatus() == service.Ack_SUCCESS {
-		fmt.Printf("Bid Status: %v\n", ack.GetStatus())
+		f.logger.InfoPrintf("Bid status: %v", ack.GetStatus())
 	} else if ack.GetStatus() == service.Ack_FAIL {
-		fmt.Printf("Bid Status: %v\nThe bid was too low.\nWrite 'result' to see the highest bid.\n", ack.GetStatus())
+		f.logger.InfoPrintf("Bid status: %v", ack.GetStatus())
+		f.logger.WarningPrintln("The bid was too low. Write 'result' to see the highest bid.")
+	} else if ack.GetStatus() == service.Ack_EXCEPTION {
+		f.logger.WarningPrintf("Bid status: %v", ack.GetStatus())
+		f.logger.WarningPrintln("The auction has ended.")
 	}
 }
 
-func (f *FrontEndNode) resultCase() {
-	result := &service.RequestStatus{}
-
-	auctionResult, err := primClient.Result(context.Background(), result)
+func (f *FrontEndNode) result() {
+	auctionResult, err := primClient.Result(context.Background(), &service.RequestStatus{})
 
 	if err != nil {
-		f.logger.WarningPrintf("Connection was lost. :: ", err)
+		f.logger.ErrorPrintf("Connection was lost. :: ", err)
 	}
 
-	fmt.Printf("Action stil going: %v, highest bider: %v, highest bid: %v\n",
-		auctionResult.Ongoing, auctionResult.NodeId, auctionResult.Price)
+	fmt.Println("---------")
+	fmt.Printf("Auction still going: %v\n", auctionResult.Ongoing)
+	fmt.Printf("Highest bidder: %v\n", auctionResult.NodeId)
+	fmt.Printf("Highest bid: %v\n", auctionResult.Price)
+	fmt.Println("---------")
 }
 
+// Redial dials up a new connection to the new primary ReplicaNode.
+func (f *FrontEndNode) Redial(_ context.Context, rp *service.RequestPort) (*service.ReturnPort, error)  {
+	f.primaryServer = rp.Port
+	primClient = client.CreateClient(rp.Port, f.logger, grpc.WithInsecure())
+
+	return &service.ReturnPort{Address: f.ipAddress.String()}, nil
+}
+
+// NewFrontEndNode creates and returns a new FrontEndNode with the specified name, and ip address.
 func NewFrontEndNode(name, address, port string) *FrontEndNode {
 	logger := utils.NewLogger(name)
 	ipAddress, err := net.ResolveTCPAddr("tcp", address+":"+port)
@@ -134,4 +140,5 @@ func NewFrontEndNode(name, address, port string) *FrontEndNode {
 		lamport:       utils.NewLamport(),
 		logger:        logger,
 	}
+
 }

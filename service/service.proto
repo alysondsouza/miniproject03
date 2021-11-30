@@ -11,7 +11,6 @@ option go_package = "./service";
 
 package service;
 
-
 message RequestPort {
     string name = 1;
     string port = 2;
@@ -33,9 +32,7 @@ message ReplicateClientAddress {
     repeated string addresses = 1;
 }
 
-message RequestStatus {
-    string resultComando = 1;
-}
+message RequestStatus {}
 
 message AuctionResults {
     bool ongoing = 1;
@@ -49,16 +46,11 @@ message RequestBid {
     int32 lamport = 3;
 }
 
-message HighestBidInfo {
-    string nodeId = 1;
-    int32 highestBid = 2;
-    int32 lamport = 3;
-}
-
 message Ack {
     enum Status {
         FAIL = 0;
         SUCCESS = 1;
+        EXCEPTION = 2;
     }
     Status status = 1;
 }
@@ -66,6 +58,7 @@ message Ack {
 message Replica {
     AuctionReplica auctionReplica = 1;
     repeated string addresses = 2;
+    string primaryReplicaAddress = 3;
 }
 
 message AuctionReplica {
@@ -75,12 +68,43 @@ message AuctionReplica {
     int32 timeRemaining = 4;
 }
 
+message HealthCheckRequest {
+    string service = 1;
+}
+
+message HealthCheckResponse {
+    string status = 1;
+}
+
+message ElectionRequest {
+    string id = 1;
+}
+
+message ElectionAnswer {
+    string id = 1;
+}
+
+// Announce the identity of the elected process
+message CoordinatorRequest {
+    string id = 1;
+    string ipAddress = 2;
+}
+
 service Service {
+    // Setup RPCs
     rpc RegisterClientPortOnPrimaryServer (RequestPort) returns (ReturnPort);
+    rpc GetId (InfoRequest) returns (InfoResponse);
+
+    // Auction RPCs
     rpc Bid (RequestBid) returns (Ack);
     rpc Result (RequestStatus) returns (AuctionResults);
+
+    // Replication RPC
     rpc PublishReplicate (Replica) returns (Ack);
-    rpc ReplicateHighestBid (HighestBidInfo) returns (Ack);
-    rpc Broadcast (RequestBid) returns (Ack);
-    rpc GetName (InfoRequest) returns (InfoResponse);
+
+    // Election RPCs
+    rpc Election (ElectionRequest) returns (ElectionAnswer);
+    rpc Coordinator (CoordinatorRequest) returns (ElectionAnswer);
+    rpc Redial (RequestPort) returns (ReturnPort);
+    rpc Check (HealthCheckRequest) returns (HealthCheckResponse);
 }

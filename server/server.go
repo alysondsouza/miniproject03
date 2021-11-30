@@ -9,11 +9,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-
-
 func InitServer(ipAddress *net.TCPAddr, s service.ServiceServer, logger *utils.Logger) {
 	go func() {
 		lis, err := net.Listen("tcp", ipAddress.String())
+
 		if err != nil {
 			logger.ErrorFatalf("Failed to listen on port %v. :: %v", ipAddress.Port, err)
 		}

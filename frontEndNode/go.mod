@@ -6,9 +6,12 @@ replace utils => ../utils
 
 replace server => ../server
 
+replace client => ../client
+
 go 1.17
 
 require (
+	client v0.0.0-00010101000000-000000000000
 	google.golang.org/grpc v1.42.0
 	server v0.0.0-00010101000000-000000000000
 	service v0.0.0-00010101000000-000000000000
