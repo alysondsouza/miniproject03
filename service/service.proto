@@ -2,13 +2,6 @@ syntax = "proto3";
 
 option go_package = "./service";
 
-// Install libraries
-// go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-// go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
-// import
-// go get google.golang.org/grpc
-
 // Compile protofile with:
 // protoc -I="." --go_out="." service/service.proto
 // protoc --go-grpc_out="." service/service.proto
@@ -18,30 +11,100 @@ option go_package = "./service";
 
 package service;
 
-
-message RequestConnection {
+message RequestPort {
     string name = 1;
     string port = 2;
 }
 
-message JoinResponse {
-    string joinStatus = 1;
+message ReturnPort {
+    string address = 1;
+}
+
+message InfoRequest {
+    string requestName = 1;
+}
+
+message InfoResponse {
+    string responseName = 1;
+}
+
+message ReplicateClientAddress {
+    repeated string addresses = 1;
+}
+
+message RequestStatus {}
+
+message AuctionResults {
+    bool ongoing = 1;
+    string nodeId = 2;
+    int32 price = 3;
 }
 
 message RequestBid {
-    int32 price = 1; 
+    string nodeId = 1;
+    int32 myBid = 2;
+    int32 lamport = 3;
 }
 
 message Ack {
     enum Status {
         FAIL = 0;
         SUCCESS = 1;
+        EXCEPTION = 2;
     }
     Status status = 1;
 }
 
+message Replica {
+    AuctionReplica auctionReplica = 1;
+    repeated string addresses = 2;
+    string primaryReplicaAddress = 3;
+}
+
+message AuctionReplica {
+    string highestBidderId = 1;
+    int32 highestBid = 2;
+    bool onGoing = 3;
+    int32 timeRemaining = 4;
+}
+
+message HealthCheckRequest {
+    string service = 1;
+}
+
+message HealthCheckResponse {
+    string status = 1;
+}
+
+message ElectionRequest {
+    string id = 1;
+}
+
+message ElectionAnswer {
+    string id = 1;
+}
+
+// Announce the identity of the elected process
+message CoordinatorRequest {
+    string id = 1;
+    string ipAddress = 2;
+}
+
 service Service {
-    rpc JoinClientToServer (RequestConnection) returns (JoinResponse);
+    // Setup RPCs
+    rpc RegisterClientPortOnPrimaryServer (RequestPort) returns (ReturnPort);
+    rpc GetId (InfoRequest) returns (InfoResponse);
+
+    // Auction RPCs
     rpc Bid (RequestBid) returns (Ack);
-    rpc Broadcast (RequestBid) returns (Ack);
+    rpc Result (RequestStatus) returns (AuctionResults);
+
+    // Replication RPC
+    rpc PublishReplicate (Replica) returns (Ack);
+
+    // Election RPCs
+    rpc Election (ElectionRequest) returns (ElectionAnswer);
+    rpc Coordinator (CoordinatorRequest) returns (ElectionAnswer);
+    rpc Redial (RequestPort) returns (ReturnPort);
+    rpc Check (HealthCheckRequest) returns (HealthCheckResponse);
 }
