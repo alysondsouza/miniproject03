@@ -6,6 +6,7 @@ import (
 	"utils"
 )
 
+// CreateClient creates a new Client connection to the specific ip address.
 func CreateClient(ipAddress string, logger *utils.Logger, ops... grpc.DialOption) service.ServiceClient {
 	conn, err := grpc.Dial(ipAddress, ops...)
 	if err != nil {

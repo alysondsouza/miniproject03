@@ -36,7 +36,7 @@ go run . -name node2 -address localhost -port 5001
 <b>💡 The premise is that any server node may crash ― however, this happens only once.</b>
 </pre>
 
-The auction time is set to one minute, and within this one minute one of two events can occur:
+The auction time is set to two minutes, and within this one minute one of two events can occur:
 
 1. A backup server replica crashes.
 2. The primary server crashes.

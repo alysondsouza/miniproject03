@@ -147,5 +147,4 @@ func NewFrontEndNode(name, address, port string) *FrontEndNode {
 		lamport:       utils.NewLamport(),
 		logger:        logger,
 	}
-
 }

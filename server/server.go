@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// InitServer creates and hosts a new grpc server on the specific ip address with the specified service attached.
 func InitServer(ipAddress *net.TCPAddr, s service.ServiceServer, logger *utils.Logger) {
 	go func() {
 		lis, err := net.Listen("tcp", ipAddress.String())

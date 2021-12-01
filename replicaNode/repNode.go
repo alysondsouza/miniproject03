@@ -38,7 +38,6 @@ type ReplicaNode struct {
 // go run . -name node1 -address localhost -port 5000
 
 func main() {
-	// Flags: -name nodeX - address localhost -port 9000 -ips 9001:9002
 	var name = flag.String("name", "nodeX", "The name of the replicaNode.")
 	var address = flag.String("address", "localhost", "The address of the replicaNode.")
 	var port = flag.String("port", "9000", "The number of the port.")
@@ -119,9 +118,9 @@ func (n *ReplicaNode) Bid(_ context.Context, rb *service.RequestBid) (*service.A
 // Result returns the current status of this ReplicaNode's auction
 func (n *ReplicaNode) Result(context.Context, *service.RequestStatus) (*service.AuctionResults, error) {
 	return &service.AuctionResults{
-		Ongoing: n.auction.IsOnGoing(),
-		NodeId:  n.auction.GetHighestBidderId(),
-		Price:   int32(n.auction.GetHighestBid())}, nil
+		Ongoing: n.auction.OnGoing,
+		NodeId:  n.auction.HighestBidderId,
+		Price:   int32(n.auction.HighestBid)}, nil
 }
 
 // broadcast a replicate request to all backup ReplicaNodes.
@@ -137,10 +136,10 @@ func (n *ReplicaNode) broadcast() {
 
 			_, err := c.PublishReplicate(context.Background(), &service.Replica{
 				AuctionReplica: &service.AuctionReplica{
-					HighestBidderId: n.auction.GetHighestBidderId(),
-					HighestBid:      int32(n.auction.GetHighestBid()),
-					OnGoing:         n.auction.IsOnGoing(),
-					TimeRemaining:   int32(n.auction.GetTimeRemaining()),
+					HighestBidderId: n.auction.HighestBidderId,
+					HighestBid:      int32(n.auction.HighestBid),
+					OnGoing:         n.auction.OnGoing,
+					TimeRemaining:   int32(n.auction.TimeRemaining),
 				},
 				Addresses: n.frontEndClients,
 			})
@@ -162,11 +161,10 @@ func (n *ReplicaNode) PublishReplicate(_ context.Context, replica *service.Repli
 // replicate backs up the auction and other fields received from the primary ReplicaNode.
 func (n *ReplicaNode) replicate(replica *service.Replica) {
 	n.frontEndClients = replica.Addresses
-	newAuction := auction.NewAuction()
-	newAuction.SetHighestBidderId(replica.AuctionReplica.HighestBidderId)
-	newAuction.SetHighestBid(int(replica.AuctionReplica.HighestBid))
-	newAuction.SetIsOnGoing(replica.AuctionReplica.OnGoing)
-	newAuction.SetRemainingTime(int(replica.AuctionReplica.TimeRemaining))
+	newAuction := auction.NewAuction(int(replica.AuctionReplica.TimeRemaining), n.logger)
+	newAuction.HighestBidderId = replica.AuctionReplica.HighestBidderId
+	newAuction.HighestBid = int(replica.AuctionReplica.HighestBid)
+	newAuction.OnGoing = replica.AuctionReplica.OnGoing
 	n.auction = newAuction
 }
 
@@ -341,6 +339,6 @@ func NewReplicaNode(name string, address string, port string) *ReplicaNode {
 		logger:          logger,
 		replicaPeers:    make(map[string]service.ServiceClient),
 		frontEndClients: make([]string, 0),
-		auction:         auction.NewAuction(),
+		auction:         auction.NewAuction(120, logger),
 	}
 }
