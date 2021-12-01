@@ -51,5 +51,5 @@ for ($i = 0; $i -lt $n; $i++) {
                 go run . -name ' + $name + ' -sport ' + $sport + ' -ips ' + $ips + ' -delay ' + $delay + ';
             }'
 
-    Invoke-Expression -Command $command
+    #Invoke-Expression -Command $command
 }
