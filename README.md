@@ -20,7 +20,7 @@ go run . -name s2 -port 9001 -ips 9000:9002
 go run . -name s3 -port 9002 -ips 9000:9001
 ```
 
-The _FE_'s (and clients) is inserted in the folder `../frontEndNode` and run via the following commands: 
+The FE (and client) is inserted in the folder `../frontEndNode` and run via the following commands: 
 
 ```pwsh
 go run . -name node1 -address localhost -port 5000
@@ -36,7 +36,7 @@ go run . -name node2 -address localhost -port 5001
 <b>💡 The premise is that any server node may crash ― however, this happens only once.</b>
 </pre>
 
-The auction time is set to one minute, and within this one minute one of two events can occur:
+The auction time is set to two minutes, and within this one minute one of two events can occur:
 
 1. A backup server replica crashes.
 2. The primary server crashes.
